@@ -61,18 +61,18 @@ class VGG(nn.Module):
 
 # gram matrix and loss
 class GramMatrix(nn.Module):
-    def forward(self, input):
-        b, c, h, w = input.size()
-        F = input.view(b, c, h * w)
-        G = torch.bmm(F, F.transpose(1, 2))
-        G.div_(h * w)
-        return G
+    def forward(self, x):
+        b, c, h, w = x.size()
+        matrix_f = x.view(b, c, h * w)
+        matrix_g = torch.bmm(matrix_f, F.transpose(1, 2))
+        matrix_g.div_(h * w)
+        return matrix_g
 
 
 class GramMSELoss(nn.Module):
-    def forward(self, input, target):
-        out = torch.log(nn.MSELoss()(GramMatrix()(input), target))
-        return (out)
+    def forward(self, x, target):
+        out = torch.log(nn.MSELoss()(GramMatrix()(x), target))
+        return out
 
 
 class CrossGramMatrix(nn.Module):
@@ -92,30 +92,24 @@ class CrossGramMatrix(nn.Module):
 class CrossGramMSELoss(nn.Module):
     def forward(self, input1, input2, target):
         out = (nn.MSELoss()(CrossGramMatrix()(input1, input2), target))
-        return (out)
+        return out
 
 
-MEAN_imagenet = [103.94 / 255, 116.78 / 255, 123.68 / 255]
+MEAN_imagenet = [0.485, 0.456, 0.406]
 MINUS_MEAN = [-i for i in MEAN_imagenet]
-STD_imagenet = [57.38 / 255, 57.12 / 255, 58.40 / 255]
+STD_imagenet = [0.229, 0.224, 0.225]
 MINUS_STD = [-i for i in STD_imagenet]
-STD_INV = [255 / 57.38, 255 / 57.12, 255 / 58.40]
+STD_INV = [1/i for i in STD_imagenet]
 
-prep = transforms.Compose([transforms.Normalize(mean=MEAN_imagenet[::-1],  # subtract imagenet mean
+prep = transforms.Compose([transforms.Normalize(mean=MEAN_imagenet,  # subtract imagenet mean
                                                 std=[1, 1, 1]), ])
 postpa = transforms.Compose([transforms.Normalize(mean=[0, 0, 0],  # subtract imagenet mean
-                                                  std=STD_INV[::-1]),
-                             transforms.Normalize(mean=MINUS_MEAN[::-1],  # subtract imagenet mean
+                                                  std=STD_INV),
+                             transforms.Normalize(mean=MINUS_MEAN,  # subtract imagenet mean
                                                   std=[1, 1, 1]), ])
-prep2 = transforms.Compose([transforms.Normalize(mean=MEAN_imagenet[::-1],
-                                                 std=STD_imagenet[::-1]), ])
+prep2 = transforms.Compose([transforms.Normalize(mean=MEAN_imagenet,
+                                                 std=STD_imagenet), ])
 
-"""
-postpa = transforms.Compose([transforms.Normalize(mean=MINUS_MEAN[::-1], #subtract imagenet mean
-                                                  std=[1, 1, 1]),])
-prep2 = transforms.Compose([transforms.Normalize(mean=MEAN_imagenet[::-1],
-                                                std=[1, 1, 1]),])
-"""
 
 vgg19 = torchvision.models.vgg19(pretrained=True, progress=True)
 weight_vgg19 = vgg19.state_dict()
@@ -155,7 +149,4 @@ style_layers = ['r11', 'r21', 'r31', 'r41', 'r51']
 content_layers = ['r42']
 loss_layers = style_layers + content_layers
 loss_fns = [CrossGramMSELoss()] * (len(style_layers) - 1) + [nn.MSELoss()] * len(content_layers)
-
-if torch.cuda.is_available():
-    print('torch.cuda.is_available() =', torch.cuda.is_available())
-    loss_fns = [loss_fn.cuda() for loss_fn in loss_fns]
+loss_fns = [loss_fn.cuda() for loss_fn in loss_fns]
