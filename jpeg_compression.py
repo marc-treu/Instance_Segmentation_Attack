@@ -144,7 +144,7 @@ def round_only_at_0(x):
     return cond * (x ** 3) + (1 - cond) * x
 
 
-def torch_jpeg_compress_decompress(image, rounding=round_only_at_0, factor=1):
+def jpeg_approximation(image, rounding=round_only_at_0, factor=1):
     """
     image: [B, H, W, C]
     """
