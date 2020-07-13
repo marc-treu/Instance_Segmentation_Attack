@@ -29,7 +29,7 @@ def apply_gaussian_filter(image, option, size=550):
     gaussian_kernel = gaussian_kernel.view(1, 1, kernel_size, kernel_size)
     gaussian_kernel = gaussian_kernel.repeat(channels, 1, 1, 1)
 
-    gaussian_filter = nn.Conv2d(in_channels=channels, out_channels=channels,
+    gaussian_filter = torch.nn.Conv2d(in_channels=channels, out_channels=channels,
                                 kernel_size=kernel_size, groups=channels, bias=False)
 
     gaussian_filter.weight.data = gaussian_kernel
