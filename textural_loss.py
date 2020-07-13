@@ -101,14 +101,20 @@ STD_imagenet = [0.229, 0.224, 0.225]
 MINUS_STD = [-i for i in STD_imagenet]
 STD_INV = [1/i for i in STD_imagenet]
 
-prep = transforms.Compose([transforms.Normalize(mean=MEAN_imagenet,  # subtract imagenet mean
-                                                std=[1, 1, 1]), ])
-postpa = transforms.Compose([transforms.Normalize(mean=[0, 0, 0],  # subtract imagenet mean
-                                                  std=STD_INV),
-                             transforms.Normalize(mean=MINUS_MEAN,  # subtract imagenet mean
-                                                  std=[1, 1, 1]), ])
-prep2 = transforms.Compose([transforms.Normalize(mean=MEAN_imagenet,
-                                                 std=STD_imagenet), ])
+
+normalize_imagenet = transforms.Compose([transforms.Normalize(mean=MEAN_imagenet, std=STD_imagenet)])
+
+undo_normalize_imagenet = transforms.Compose([transforms.Normalize(mean=[0, 0, 0], std=STD_INV),
+                             		      transforms.Normalize(mean=MINUS_MEAN, std=[1, 1, 1])])
+
+def normalize(img):
+    return normalize_imagenet(img.squeeze(0)).unsqueeze(0)
+
+def undo_normalize(img):
+    return undo_normalize_imagenet(img.squeeze(0)).unsqueeze(0)
+
+colors_palette = ["#000012", "#0f0c31", "#04595d", "#53849c", "#98b0dd", "#d79e1c", 
+                  "#f6875c", "#fb5318", "#ee040e", "#bc0b28", "#88013e", "#500080"]
 
 
 vgg19 = torchvision.models.vgg19(pretrained=True, progress=True)
