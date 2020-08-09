@@ -17,6 +17,10 @@ undo_mean_imagenet = transforms.Compose([transforms.Normalize(mean=MINUS_MEAN, s
 undo_std_imagenet = transforms.Compose([transforms.Normalize(mean=[0, 0, 0], std=STD_INV)])
 
 
+def apply_compose(img, compose):
+    return compose(img.squeeze(0)).unsqueeze(0)
+
+
 def normalize(img):
     return normalize_imagenet(img.squeeze(0)).unsqueeze(0)
 
